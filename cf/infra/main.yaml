@@ -1,0 +1,148 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  The CloudFormation template is designed for building infrastructure for ECS, as an example.
+
+Parameters:
+  s3cf:
+    Description:  S3 bucket name for storage cloudformation templates.
+    Type: String
+    Default: "cloudformation-box/ecs-star"
+  cidr4Vpc:
+    Type: String
+    Default:  "10.0.0.0/16"
+  cidr4Subnet:
+    Description: "Comma-delimited list of CIDR blocks."
+    Type: String
+    Default: "10.0.10.0/24, 10.0.30.0/24, 10.0.50.0/24, 10.0.20.0/24, 10.0.40.0/24, 10.0.60.0/24"
+  keyPairName:
+    Description:  Key pair name for ec2.
+    Type: String
+    Default: "nx-keypair"
+    #Have to moddify into existing keypair.
+  s3Dns:
+    Description: DNS of S3 endpoint.
+    Type: String
+    Default: "s3.cn-northwest-1.amazonaws.com.cn" 
+    #s3.cn-northwest-1.amazonaws.com.cn
+    #s3.cn-north-1.amazonaws.com.cn
+  ip4Ec2:
+    Description: DNS of the identity provider for EC2
+    Type: String
+    Default: "ec2.amazonaws.com.cn" 
+    #ec2.cn-northwest-1.amazonaws.com.cn
+    #ec2.cn-north-1.amazonaws.com.cn
+  ecsami:
+    Description: ECS AMI ID - The Amazon Machine Image ID used for the cluster, leave it as the default value to get the latest AMI
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+
+Resources:
+  Network4C:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        vpcCidr: !Ref cidr4Vpc
+        subnetCidr: !Ref cidr4Subnet
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-network'
+      TemplateURL:  !Sub 'https://${s3Dns}/${s3cf}/infra/network.yaml'
+      TimeoutInMinutes: "60"
+
+  Policy4C:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-policy'
+      TemplateURL:  !Sub 'https://${s3Dns}/${s3cf}/infra/policy.yaml'
+      TimeoutInMinutes: "60"
+
+
+  BastionServer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        keyPairName:  !Ref keyPairName
+        ami: !Ref ecsami
+        baseVpc: !GetAtt Network4C.Outputs.baseVpc
+        s3cf: !Ref s3cf
+        publicSubnet1a: !GetAtt Network4C.Outputs.publicSubnet1a
+        publicSubnet1b: !GetAtt Network4C.Outputs.publicSubnet1b
+        publicSubnet1c: !GetAtt Network4C.Outputs.publicSubnet1c
+        s3Dns: !Ref s3Dns
+        ip4Ec2: !Ref ip4Ec2
+        bostionRole: !GetAtt Policy4C.Outputs.bastionRole
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-bastion'
+      TemplateURL:  !Sub 'https://${s3Dns}/${s3cf}/infra/bastion.yaml'
+      TimeoutInMinutes: "60"
+
+Outputs:
+  baseVpc:
+    Description: VPC Stack ID.
+    Value:  !GetAtt Network4C.Outputs.baseVpc
+    Export:
+      Name: !Sub '${AWS::StackName}-baseVpc'
+  publicSubnet1a:
+    Description: Public subnet 1a.
+    Value:  !GetAtt Network4C.Outputs.publicSubnet1a
+    Export:
+      Name: !Sub '${AWS::StackName}-pub1aSubnet'
+  publicSubnet1b:
+    Description: Public subnet 1b.
+    Value:  !GetAtt Network4C.Outputs.publicSubnet1b
+    Export:
+      Name: !Sub '${AWS::StackName}-pub1bSubnet'
+  publicSubnet1c:
+    Description: Public subnet 1c.
+    Value:  !GetAtt Network4C.Outputs.publicSubnet1c
+    Export:
+      Name: !Sub '${AWS::StackName}-pub1cSubnet'
+  privateSubnet1a:
+    Description: Private subnet 1a.
+    Value:  !GetAtt Network4C.Outputs.privateSubnet1a
+    Export:
+      Name: !Sub '${AWS::StackName}-pri1aSubnet'
+  privateSubnet1b:
+    Description: Private subnet 1b.
+    Value:  !GetAtt Network4C.Outputs.privateSubnet1b
+    Export:
+      Name: !Sub '${AWS::StackName}-pri1bSubnet'
+  privateSubnet1c:
+    Description: Private subnet 1c.
+    Value:  !GetAtt Network4C.Outputs.privateSubnet1c
+    Export:
+      Name: !Sub '${AWS::StackName}-pri1cSubnet'
+  bastionPolicy:
+    Description: Policy ARN for bastion.
+    Value:  !GetAtt Policy4C.Outputs.bastionPolicy
+    Export:
+      Name: !Sub '${AWS::StackName}-bastionPolicy'
+  nodesPolicy:
+    Description: Policy ARN for auto scaling nodes, which are registered into ECS cluster.
+    Value:  !GetAtt Policy4C.Outputs.nodesPolicy
+    Export:
+      Name: !Sub '${AWS::StackName}-nodesPolicy'
+  ecsPolicy:
+    Description: Policy ARN for ECS service.
+    Value:  !GetAtt Policy4C.Outputs.ecsPolicy
+    Export:
+      Name: !Sub '${AWS::StackName}-ecsPolicy'
+  bastionRole:
+    Description: Policy Role for bastion.
+    Value:  !GetAtt Policy4C.Outputs.bastionRole
+    Export:
+      Name: !Sub '${AWS::StackName}-bastionRole'
+  nodesRole:
+    Description: Policy Role for auto scaling nodes, which are registered into ECS cluster.
+    Value:  !GetAtt Policy4C.Outputs.nodesRole
+    Export:
+      Name: !Sub '${AWS::StackName}-nodesRole'
+  ecsRole:
+    Description: Policy Role for ECS service.
+    Value:  !GetAtt Policy4C.Outputs.ecsRole  
+    Export:
+      Name: !Sub '${AWS::StackName}-ecsRole'

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: front-service
+  namespace: todo
+  labels:
+    run: front-service
+spec:
+  selector:
+    app: front
+    tier: experience-api-layer
+  ports:
+    - protocol: TCP
+      port: 8080

@@ -1,0 +1,23 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  This was designed for initializing ECR.
+
+Parameters:
+  serviceName:
+    Description:  Service name in the ECS Cluster.
+    Type: String
+
+Resources:
+  AppEcrRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub '${serviceName}'
+
+
+Outputs:
+  appEcrRepo:
+    Description: Name of ECR Repo.
+    Value:  !Ref AppEcrRepository
+

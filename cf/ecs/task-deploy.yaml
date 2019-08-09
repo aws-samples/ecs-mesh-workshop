@@ -1,0 +1,128 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  This was designed for application deployment on ECS Cluster.
+
+Parameters:
+  baseVpc:
+    Description: VPC to launch virtual server in.
+    Type: AWS::EC2::VPC::Id
+  ecsCluster:
+    Description:  ECS Cluster for application running.
+    Type: String
+  serviceName:
+    Description:  Service name inside the ECS Cluster.
+    Type: String
+  imageVersion:
+    Description:  The version of Docker Image.
+    Type: String
+  logRetentionDays:
+    Type: Number
+    Description: Log retention in days
+    AllowedValues: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653]
+  appContainerPort:
+    Type: Number
+    Description: Container port of app requiring ELB exposure
+    Default: 8080
+  appHostPort:
+    Type: Number
+    Description: Host port of app requiring ELB exposure
+    Default: 8080
+  ecrRepo:
+    Description: ECR Repo.
+    Type:  String
+  appElasticLoadBalancing:
+    Description: Load Balancer for containers.
+    Type: String
+  ecsRole:
+    Description: Role for ECS service.
+    Type: String
+
+Resources:
+  ServiceLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName:
+        !Sub '${AWS::StackName}/ecs/${ecsCluster}/${serviceName}'
+      RetentionInDays:
+        !Ref  logRetentionDays
+
+  ApplicationTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn: ServiceLogGroup
+    Properties:
+      NetworkMode: bridge
+      ContainerDefinitions:
+      - Name:
+          !Sub '${serviceName}'
+        Image:
+          !Sub  '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com.cn/${ecrRepo}:${imageVersion}'
+        Memory: 512
+        Environment:
+           - Name: AWS_DEFAULT_REGION
+             Value: !Sub '${AWS::Region}'
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group:
+              !Sub '${AWS::StackName}/ecs/${ecsCluster}/${serviceName}'
+            awslogs-region:
+              !Sub '${AWS::Region}'
+
+        PortMappings:
+          - ContainerPort: !Ref appContainerPort
+            HostPort: 0
+            Protocol: tcp
+
+  AppService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ecsCluster
+      DeploymentConfiguration:
+        MinimumHealthyPercent: 50
+        MaximumPercent: 200
+      DesiredCount: 3
+      LoadBalancers:
+        - ContainerName:
+            !Sub '${serviceName}'
+          ContainerPort: !Ref appContainerPort
+          TargetGroupArn: !Ref AppsvrElbTargetGroup
+      Role: !Ref ecsRole
+
+      ServiceName: !Sub '${serviceName}-service'
+      TaskDefinition: !Ref ApplicationTaskDefinition
+
+  AppsvrElasticLoadBalancingListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn:
+          !Ref AppsvrElbTargetGroup
+      LoadBalancerArn:
+        !Ref appElasticLoadBalancing
+      Port: !Ref appHostPort
+      Protocol: HTTP
+
+  AppsvrElbTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPort: traffic-port
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 3
+      HealthCheckPath: /encode
+      Matcher:
+        HttpCode: '200'
+      Port: !Ref appHostPort
+      Protocol: HTTP
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-appsvr-tg'
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value:  20
+      TargetType: instance
+      VpcId: !Ref baseVpc

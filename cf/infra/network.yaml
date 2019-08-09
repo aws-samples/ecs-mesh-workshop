@@ -1,0 +1,220 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  Network stack is designed for provisioning all network resources.
+
+Parameters:
+  vpcCidr:
+    Description: "CIDR blocks for VPC."
+    Type: String
+  subnetCidr:
+    Description: "Comma-delimited list of CIDR blocks."
+    Type: CommaDelimitedList
+
+Conditions:
+  Only2AZ:
+    !Equals [ !Ref "AWS::Region", cn-north-1 ]
+
+Resources:
+  BaseVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref vpcCidr
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-vpc'
+
+  Pub1aSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      CidrBlock: !Select [0, !Ref subnetCidr]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-public1a'
+      VpcId:  !Ref BaseVPC
+  Pub1bSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      CidrBlock: !Select [1, !Ref subnetCidr]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-public1b'
+      VpcId:  !Ref BaseVPC
+  Pub1cSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - !If [ Only2AZ, 0, 2 ]
+          - Fn::GetAZs: ""
+      CidrBlock: !Select [2, !Ref subnetCidr]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-public1c'
+      VpcId:  !Ref BaseVPC
+  Pri1aSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      CidrBlock: !Select [3, !Ref subnetCidr]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-private1a'
+      VpcId:
+        !Ref BaseVPC
+  Pri1bSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      CidrBlock: !Select [4, !Ref subnetCidr]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-private1b'
+      VpcId:  !Ref BaseVPC
+  Pri1cSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - !If [ Only2AZ, 0, 2 ]
+          - Fn::GetAZs: ""
+      CidrBlock: !Select [5, !Ref subnetCidr]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-private1c'
+      VpcId:  !Ref BaseVPC
+
+  VpcInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key:  Name
+          Value:  !Sub '${AWS::StackName}-igw'
+  AttachInternetGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:  !Ref BaseVPC
+      InternetGatewayId:  !Ref VpcInternetGateway
+
+  Eip4Natgateway:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !Sub '${Eip4Natgateway.AllocationId}'
+      SubnetId: !Ref Pub1aSubnet
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-ngw'
+
+  PublicRoutetable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key:  Name
+          Value:  !Sub '${AWS::StackName}-public-rt'
+      VpcId: !Ref BaseVPC
+
+  PrivateRoutetable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key:  Name
+          Value:  !Sub '${AWS::StackName}-private-rt'
+      VpcId: !Ref BaseVPC
+
+  Route4PublicRoutetable:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref VpcInternetGateway
+      RouteTableId: !Ref PublicRoutetable
+
+  Route4PrivateRoutetable:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      #Note: use NatGatewayId otherwise throw exceptio - "Route did not stabilize in expected time"
+      NatGatewayId: !Ref NatGateway
+      RouteTableId: !Ref PrivateRoutetable
+
+  AssociationPub1aSubnet:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRoutetable
+      SubnetId: !Ref Pub1aSubnet
+  AssociationPub1bSubnet:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRoutetable
+      SubnetId: !Ref Pub1bSubnet
+  AssociationPub1cSubnet:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRoutetable
+      SubnetId: !Ref Pub1cSubnet
+  AssociationPri1aSubnet:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRoutetable
+      SubnetId: !Ref Pri1aSubnet
+  AssociationPri1bSubnet:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRoutetable
+      SubnetId: !Ref Pri1bSubnet
+  AssociationPri1cSubnet:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRoutetable
+      SubnetId: !Ref Pri1cSubnet
+
+Outputs:
+  baseVpc:
+    Description: VPC Stack ID.
+    Value:  !Ref BaseVPC
+  publicSubnet1a:
+    Description: Public subnet 1a.
+    Value:  !Ref Pub1aSubnet
+  publicSubnet1b:
+    Description: Public subnet 1b.
+    Value:  !Ref Pub1bSubnet
+  publicSubnet1c:
+    Description: Public subnet 1c.
+    Value:  !Ref Pub1cSubnet
+  privateSubnet1a:
+    Description: Private subnet 1a.
+    Value:  !Ref Pri1aSubnet
+  privateSubnet1b:
+    Description: Private subnet 1b.
+    Value:  !Ref Pri1bSubnet
+  privateSubnet1c:
+    Description: Private subnet 1c.
+    Value:  !Ref Pri1cSubnet

@@ -1,0 +1,39 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "linkerd-viz",
+      "image": "docker.io/buoyantio/linkerd-viz:0.2.0",
+      "command": [
+        "consul"
+      ],
+      "memory": 1024,
+      "portMappings": [
+        {
+          "hostPort": 3000,
+          "containerPort": 3000,
+          "protocol": "tcp"
+        },
+        {
+          "hostPort": 9191,
+          "containerPort": 9191,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {
+          "name": "SCRAPE_INTERVAL",
+          "value": "5s"
+        }
+      ]
+    }
+  ],
+  "placementConstraints": [
+    {
+        "type": "memberOf",
+        "expression": "attribute:stack == linkerd-viz"
+    }
+  ],  
+  "family": "linkerd-viz",
+  "networkMode": "host"
+}

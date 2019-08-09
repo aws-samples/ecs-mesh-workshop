@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: |
+    Spot instance termination drainer from https://github.com/ktruckenmiller/aws-ecs-spot-instance-drainer
+    and modified as per need.
+Parameters:
+  image:
+    Type: String
+    Default: spot_term_watcher:latest
+Resources:
+  Logs:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: spot-checker
+      RetentionInDays: 1
+
+  Task:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: spot-checker
+      TaskRoleArn: !Ref SpotCheckerRole
+      NetworkMode: host
+      ContainerDefinitions:
+        - Name: spot-checker
+          Cpu: 10
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com.cn/${image}'
+          MemoryReservation: 20
+          Environment:
+            - Name: AWS_REGION
+              Value:
+                Fn::Sub: "${AWS::Region}"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: spot-checker
+              awslogs-region: !Sub "${AWS::Region}"
+              awslogs-stream-prefix: spot-checker
+
+  SpotCheckerRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ecs-tasks.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: '/'
+      Policies:
+        - PolicyName: "ecs-stopper"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - 'ecs:UpdateContainerInstancesState'
+                Resource: "*"

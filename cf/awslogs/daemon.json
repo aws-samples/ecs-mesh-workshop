@@ -1,0 +1,10 @@
+{
+  "log-driver": "awslogs",
+  "log-opts": {
+    "awslogs-region": "cn-northwest-1",
+    "awslogs-group": "{aws_stack_name}/ec2/autoscaling/log/docker",
+    "awslogs-stream":" {cluster}/{container_instance_id}",
+    "awslogs-create-group": "true",
+    "awslogs-datetime-format": "%Y-%m-%dT%H:%M:%S.%f"
+  }
+}

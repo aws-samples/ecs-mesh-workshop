@@ -1,0 +1,28 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: store-deployment
+  namespace: todo
+  labels:
+    app: store
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: store
+      tier: process-api-layer
+  template:
+    metadata:
+      labels:
+        app: store
+        tier: process-api-layer
+    spec:
+      containers:
+        - name: store
+          image: 530820415924.dkr.ecr.us-west-2.amazonaws.com/store:latest
+          env:
+            - name: STORE_SERVICE_URL
+              value: http://127.0.0.1:9080
+
+

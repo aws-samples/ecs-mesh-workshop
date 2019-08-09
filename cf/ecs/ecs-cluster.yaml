@@ -1,0 +1,21 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  This was designed for initializing ECS Cluster.
+
+Parameters:
+  clusterName:
+    Description:  Service name inside the ECS Cluster.
+    Type: String
+
+Resources:
+  AppEcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref clusterName
+
+Outputs:
+  appEcsCluster:
+    Description: ECS Cluster.
+    Value:  !Ref AppEcsCluster

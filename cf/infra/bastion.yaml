@@ -1,0 +1,160 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  This was design to setup bastion instance in public network in order to future admin & login.
+
+
+Parameters:
+  keyPairName:
+    Description:  Key pair name for ec2.
+    Type: String
+  ami:
+    Description:  Amazon image ID.
+    Type: String
+  baseVpc:
+    Description: VPC to launch virtual server in.
+    Type: AWS::EC2::VPC::Id
+    # Default:  !GetAtt networkStack.Outputs.baseVpcOutput
+  s3cf:
+    Description:  S3 bucket name for storage cloudformation templates.
+    Type: String
+  publicSubnet1a:
+    Description:  subnet to launch virtual server in.
+    Type: AWS::EC2::Subnet::Id
+  publicSubnet1b:
+    Description:  subnet to launch virtual server in.
+    Type: AWS::EC2::Subnet::Id
+  publicSubnet1c:
+    Description:  subnet to launch virtual server in.
+    Type: AWS::EC2::Subnet::Id
+  instanceType:
+    Description:  instance tyep for ec2.
+    Type: String
+    Default: t2.medium
+  s3Dns:
+    Description: DNS of S3 endpoint.
+    Type: String
+    Default: "s3.cn-northwest-1.amazonaws.com.cn"
+  ip4Ec2:
+    Description: DNS of the identity provider for EC2
+    Type: String
+    Default: "ec2.amazonaws.com.cn" 
+  bostionRole:
+    Description: Role for bastion
+    Type: String
+
+
+Resources:
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to shost
+      VpcId: !Ref baseVpc
+      SecurityGroupIngress:
+      -
+        IpProtocol: TCP
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
+      -
+        IpProtocol: TCP
+        FromPort: '443'
+        ToPort: '443'
+        CidrIp: 0.0.0.0/0
+      -
+        IpProtocol: TCP
+        FromPort: '8080'
+        ToPort: '9080'
+        CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-bastion-sg'
+          
+  Ec2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+        - !Ref bostionRole
+
+  BastionEc2Instance:
+    Type: AWS::EC2::Instance
+    Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          files:
+            /home/ec2-user/first-run.sh:
+              content:
+                !Sub |
+                #!/bin/bash
+                mkdir -p /home/ec2-user/cloudwatch
+                cd /home/ec2-user/cloudwatch
+                curl https://${s3Dns}/amazoncloudwatch-agent-cn-northwest-1/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm -o amazon-cloudwatch-agent.rpm
+                sudo rpm -U ./amazon-cloudwatch-agent.rpm
+
+                aws s3 cp s3://${s3cf}/cloudwatch4ecs/amazon-cloudwatch-agent-ecs.json amazon-cloudwatch-agent-ecs.json --endpoint-url https://${s3Dns}/
+                sudo cp ./amazon-cloudwatch-agent-ecs.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+                cd /opt/aws/amazon-cloudwatch-agent/etc
+                sudo sed -i -e "s/{aws_stack_name}/${AWS::StackName}/g" amazon-cloudwatch-agent.json
+                EC2_INSTANCE_ID=$(curl -s http://169.254.169.254/1.0/meta-data/instance-id/)
+                sudo sed -i -e "s/{instance_id}/$EC2_INSTANCE_ID/g" amazon-cloudwatch-agent.json
+
+                sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+
+                #sudo yum install -y https://${s3Dns}/amazon-ssm-cn-northwest-1/latest/linux_amd64/amazon-ssm-agent.rpm
+                #sudo start amazon-ssm-agent
+
+              mode: "000755"
+              owner: "ec2-user"
+              group: "ec2-user"
+          commands:
+            agent1:
+              command:  "./first-run.sh"
+              cwd: "/home/ec2-user"
+              ignoreErrors: false
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !Ref bostionRole
+
+    Properties:
+      #AdditionalInfo: String     # optional
+      ImageId:  !Ref ami
+      InstanceType: !Ref instanceType
+      IamInstanceProfile: !Ref Ec2InstanceProfile
+      KeyName: !Ref keyPairName
+      Monitoring: true
+      DisableApiTermination: true
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          GroupSet:
+            -
+              !Ref BastionSecurityGroup
+          SubnetId: !Ref  publicSubnet1a
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -xe
+            sudo yum update -y
+            sudo yum install -y aws-cfn-bootstrap aws-cli jq wget
+            #docker & ecs-agent 
+            sudo amazon-linux-extras disable docker
+            sudo amazon-linux-extras install -y ecs #; sudo systemctl enable --now ecs
+            sudo usermod -a -G docker ec2-user
+
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource BastionEc2Instance --region ${AWS::Region}
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource BastionEc2Instance --region ${AWS::Region}
+
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-bastion-ec2'
+        - Key: Owner
+          Value: CC
+        - Key: Purpose
+          Value: Bastion
+    CreationPolicy:
+      ResourceSignal:
+        Count:  1
+        Timeout: PT5M

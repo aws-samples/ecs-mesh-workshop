@@ -1,0 +1,293 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  Prepared policies are for all need.
+
+
+Parameters: 
+  ip4Ec2:
+    Description: DNS of the identity provider for EC2
+    Type: String
+    Default: "ec2.amazonaws.com.cn" 
+  ip4Ecs:
+    Description: DNS of the identity provider for ECS
+    Type: String
+    Default: "ecs.amazonaws.com" 
+
+
+Resources:
+
+  BostionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - !Ref ip4Ec2
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      # ManagedPolicyArns:
+      #   - !Ref bastionPolicyArn
+      RoleName: !Sub '${AWS::StackName}-bostion-role'
+
+  BastionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub '${AWS::StackName}-bostion-policy'
+      PolicyDocument:  
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - "s3:*"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action:
+              - "ec2:*"
+              - "ec2messages:AcknowledgeMessage"
+              - "ec2messages:DeleteMessage"
+              - "ec2messages:FailMessage"
+              - "ec2messages:GetEndpoint"
+              - "ec2messages:GetMessages"
+              - "ec2messages:SendReply"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action:
+              - "cloudwatch:*"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action:
+              - "ssm:*"
+              - "ssmmessages:CreateControlChannel"
+              - "ssmmessages:CreateDataChannel"
+              - "ssmmessages:OpenControlChannel"
+              - "ssmmessages:OpenDataChannel"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action:
+              - "logs:CreateLogGroup"
+              - "logs:CreateLogStream"
+              - "logs:DescribeLogGroups"
+              - "logs:DescribeLogStreams"
+              - "logs:PutLogEvents"
+            Resource: "*"
+      Roles:
+        - !Ref BostionRole
+
+  EcsNodeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - !Ref ip4Ec2
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      # ManagedPolicyArns:
+      #   - !Ref nodesPolicyArn
+      RoleName: !Sub '${AWS::StackName}-nodes-role'
+
+  NodesPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub '${AWS::StackName}-nodes-policy'
+      PolicyDocument:  
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - "s3:*"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action:
+              - "ec2:*"
+              - "ec2messages:AcknowledgeMessage"
+              - "ec2messages:DeleteMessage"
+              - "ec2messages:FailMessage"
+              - "ec2messages:GetEndpoint"
+              - "ec2messages:GetMessages"
+              - "ec2messages:SendReply"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action:
+              - "cloudwatch:*"
+              - "logs:CreateLogGroup"
+              - "logs:CreateLogStream"
+              - "logs:DescribeLogGroups"
+              - "logs:DescribeLogStreams"
+              - "logs:PutLogEvents"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action:
+              - "ssm:*"
+              - "ssmmessages:CreateControlChannel"
+              - "ssmmessages:CreateDataChannel"
+              - "ssmmessages:OpenControlChannel"
+              - "ssmmessages:OpenDataChannel"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action:
+              - "ecs:CreateCluster"
+              - "ecs:DeregisterContainerInstance"
+              - "ecs:DiscoverPollEndpoint"
+              - "ecs:Poll"
+              - "ecs:RegisterContainerInstance"
+              - "ecs:StartTelemetrySession"
+              - "ecs:UpdateContainerInstancesState"
+              - "ecs:Submit*"
+              - "ecr:GetAuthorizationToken"
+              - "ecr:BatchCheckLayerAvailability"
+              - "ecr:GetDownloadUrlForLayer"
+              - "ecr:BatchGetImage"
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action:
+              - "elasticloadbalancing:*"
+              - "route53:*"
+              - "servicediscovery:*"
+            Resource: "*"
+          - Effect: "Allow"
+            Action:
+              - "cloudformation:DescribeStackResource"
+              - "cloudformation:SignalResource"
+            Resource: "*"
+      Roles:
+        - !Ref EcsNodeRole
+  
+  EcsConfigurationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "ecs.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      # ManagedPolicyArns:
+      #   - !Ref ecsPolicyArn
+      RoleName: !Sub '${AWS::StackName}-ecs-role'
+
+  EcsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub '${AWS::StackName}-ecs-policy'
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - "s3:*"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action:
+              - "ec2:*"
+              - "ec2messages:AcknowledgeMessage"
+              - "ec2messages:DeleteMessage"
+              - "ec2messages:FailMessage"
+              - "ec2messages:GetEndpoint"
+              - "ec2messages:GetMessages"
+              - "ec2messages:SendReply"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action:
+              - "cloudwatch:*"
+              - "logs:CreateLogGroup"
+              - "logs:CreateLogStream"
+              - "logs:DescribeLogGroups"
+              - "logs:DescribeLogStreams"
+              - "logs:PutLogEvents"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action:
+              - "ssm:*"
+              - "ssmmessages:CreateControlChannel"
+              - "ssmmessages:CreateDataChannel"
+              - "ssmmessages:OpenControlChannel"
+              - "ssmmessages:OpenDataChannel"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action:
+              - "ecs:CreateCluster"
+              - "ecs:DeregisterContainerInstance"
+              - "ecs:DiscoverPollEndpoint"
+              - "ecs:Poll"
+              - "ecs:RegisterContainerInstance"
+              - "ecs:StartTelemetrySession"
+              - "ecs:UpdateContainerInstancesState"
+              - "ecs:Submit*"
+              - "ecr:GetAuthorizationToken"
+              - "ecr:BatchCheckLayerAvailability"
+              - "ecr:GetDownloadUrlForLayer"
+              - "ecr:BatchGetImage"
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action:
+              - "elasticloadbalancing:*"
+              - "route53:*"
+              - "servicediscovery:*"
+            Resource: "*"
+          - 
+            Effect: "Allow"
+            Action:
+              - autoscaling:SetInstanceProtection
+              - autoscaling:SetInstanceHealth
+            Resource: "*"
+      Roles:
+        - !Ref EcsConfigurationRole
+
+Outputs:
+  bastionPolicy:
+    Description: Policy for bastion.
+    Value:  !Ref BastionPolicy
+  nodesPolicy:
+    Description: Policy for auto scaling nodes, which are registered into ECS cluster.
+    Value:  !Ref NodesPolicy
+  ecsPolicy:
+    Description: Policy for ECS service.
+    Value:  !Ref EcsPolicy
+  bastionRole:
+    Description: Role for bastion.
+    Value:  !Ref BostionRole
+  nodesRole:
+    Description: Role for auto scaling nodes, which are registered into ECS cluster.
+    Value:  !Ref EcsNodeRole
+  ecsRole:
+    Description: Role for ECS service.
+    Value:  !Ref EcsConfigurationRole
