@@ -1,0 +1,17 @@
+{
+    "serviceName": "hello-world-service",
+    "taskDefinition": "hello-world",
+    "loadBalancers": [
+        {
+            "targetGroupArn": "{target_group_arn}",
+            "containerName": "hello-v1",
+            "containerPort": 1234
+        }
+    ],
+    "desiredCount": 2,
+    "role": "{service_role}"
+}
+
+
+
+

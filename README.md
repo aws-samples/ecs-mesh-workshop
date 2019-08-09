@@ -6,11 +6,11 @@ This quick start solution is designed to easily launch ECS with various powerful
 
 ### 1. [Setup infrastructure layer & standup ECS](./docs/Infrastructure.md)
 
-### 2. Using on-demand instance as worker nodes
+### 2. [Using on-demand instance as worker nodes](./docs/Ondemand4Worker.md)
 
-### 3. Using spot instance as worker nodes
+### 3. [Using spot instance as worker nodes](./docs/Spot4Worker.md)
 
-### 4. Using third party solution for service mesh and monitoring
+### 4. [Using third party solution for service mesh and monitoring](./docs/ServiceMesh.md)
 
 ### 5. Manage persistent volumn with different storages
 

@@ -340,7 +340,7 @@ Resources:
           !Ref AppsvrElbTargetGroup
       LoadBalancerArn:
         !Ref AppsvrElasticLoadBalancing
-      Port: 80
+      Port: 8000
       Protocol: HTTP
 
   AppsvrElbTargetGroup:
