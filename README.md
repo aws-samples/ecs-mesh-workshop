@@ -26,6 +26,11 @@ This quick start solution is designed to easily launch ECS with various powerful
 >
 > 3. Using service mesh to improve observbility.
 
+## Todo
+
+- [ ]
+- [ ]
+
 ## Resources
 
 For more information about ECS developer guide, see the
