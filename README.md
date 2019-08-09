@@ -4,7 +4,7 @@ This quick start solution is designed to easily launch ECS with various powerful
 
 ## Tutorial
 
-### 1. Setup infrastructure layer & standup ECS[...](./docs/Infrastructure.md)
+### 1. [Setup infrastructure layer & standup ECS](./docs/Infrastructure.md)
 
 ### 2. Using on-demand instance as worker nodes
 
