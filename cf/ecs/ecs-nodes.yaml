@@ -6,63 +6,62 @@ Description: >
 
 Parameters:
   keyPairName:
-    Description:  Key pair name for ec2.
+    Description:  "Key pair name for EC2."
     Type: String
   ami:
-    Description:  Amazon image ID.
+    Description:  "Amazon Image ID."
     Type: String
   baseVpc:
-    Description: VPC to launch virtual server in.
+    Description: "VPC to launch virtual server in."
     Type: AWS::EC2::VPC::Id
   s3Dns:
-    Description:  s3 DNS
+    Description:  "S3 DNS."
     Type: String
   s3cf:
-    Description:  S3 bucket name for storage cloudformation templates.
+    Description:  "S3 bucket and folder where to store cloudformation templates."
     Type: String
   publicSubnet1a:
-    Description:  subnet to launch virtual server in.
+    Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
   publicSubnet1b:
-    Description:  subnet to launch virtual server in.
+    Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
   publicSubnet1c:
-    Description:  subnet to launch virtual server in.
+    Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
   privateSubnet1a:
-    Description:  subnet to launch virtual server in.
+    Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
   privateSubnet1b:
-    Description:  subnet to launch virtual server in.
+    Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
   privateSubnet1c:
-    Description:  subnet to launch virtual server in.
+    Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
   instanceType:
-    Description:  instance tyep for ec2.
+    Description:  "Instance tyep for EC2."
     Type: String
     Default: t2.small
   volSize:
-    Description:  The size of root volume for ec2.
+    Description:  "The size of root volume for EC2."
     Type: Number
     Default: 40
   ecsCluster:
-    Description:  ECS Cluster for application running.
+    Description:  "ECS Cluster for application running."
     Type: String
   cpuTargetValue:
-    Description:  The target value for CPU metric.
+    Description:  "The target value for CPU metric."
     Type: String
     Default: 1
   desiredCount:
-    Description:  The number of desired ec2-instance.
+    Description:  "The number of desired ec2-instance."
     Type: Number
     Default: 3
   ip4Ec2:
-    Description: DNS of the identity provider for EC2.
+    Description: "DNS of the trusted identity provider for EC2."
     Type: String
-    Default: "ec2.amazonaws.com.cn" 
   nodesRole:
-    Description: Role for nodes in ECS cluster.
+    Description: "Role for nodes in ECS cluster."
     Type: String
 
 Resources:

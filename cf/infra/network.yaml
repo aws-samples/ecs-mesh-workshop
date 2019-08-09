@@ -13,8 +13,7 @@ Parameters:
     Type: CommaDelimitedList
 
 Conditions:
-  Only2AZ:
-    !Equals [ !Ref "AWS::Region", cn-north-1 ]
+  Only2AZ:  !Equals [ !Ref "AWS::Region", cn-north-1 ]
 
 Resources:
   BaseVPC:

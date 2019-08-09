@@ -2,43 +2,39 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: >
   This is designed for application layer on top spot fleet.
 
-Metadata:
-  Authors:
-    Description: Chuan Chen
-
 Parameters:
   keyPairName:
-    Description:  Key pair name for ec2.
+    Description:  "Key pair name for ec2."
     Type: String
   ami:
-    Description:  Amazon image ID.
+    Description:  "Amazon Image ID."
     Type: String
   baseVpc:
-    Description: VPC to launch virtual server in.
+    Description: "VPC to launch virtual server in."
     Type: AWS::EC2::VPC::Id
   s3Dns:
-    Description:  s3 DNS
+    Description:  "S3 DNS."
     Type: String
   s3cf:
-    Description:  S3 bucket name for storage cloudformation templates.
+    Description:  "S3 bucket and folder where to store cloudformation templates."
     Type: String
   publicSubnet1a:
-    Description:  subnet to launch virtual server in.
+    Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
   publicSubnet1b:
-    Description:  subnet to launch virtual server in.
+    Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
   publicSubnet1c:
-    Description:  subnet to launch virtual server in.
+    Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
   privateSubnet1a:
-    Description:  subnet to launch virtual server in.
+    Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
   privateSubnet1b:
-    Description:  subnet to launch virtual server in.
+    Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
   privateSubnet1c:
-    Description:  subnet to launch virtual server in.
+    Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
   # ecsClusterTargetCapacity:
   #   Description: Number of EC2 Spot instances to initially launch in the ECS cluster
@@ -76,7 +72,6 @@ Parameters:
   ip4Ec2:
     Description: DNS of the identity provider for EC2.
     Type: String
-    Default: "ec2.amazonaws.com.cn" 
   nodesRole:
     Description: Role for nodes in ECS cluster.
     Type: String

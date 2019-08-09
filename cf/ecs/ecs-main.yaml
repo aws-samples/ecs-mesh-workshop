@@ -2,12 +2,16 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: >
   The CloudFormation template is designed for building ECS cluster & Task deployment.
 
+Metadata:
+  Authors:
+    Description: CC
+
 Parameters:
   baseStackName:
-    Description: The name of stack of infrastructure building.
+    Description: "The name of stack of infrastructure building."
     Type: String
   instanceType:
-    Description:  instance tyep for ec2.
+    Description:  "Instance tyep for EC2."
     Type: String
     AllowedValues:
       - c4.large
@@ -17,49 +21,48 @@ Parameters:
       - r5.large    
     Default: c5.large
   keyPairName:
-    Description:  Key pair name for ec2.
+    Description:  "Key pair name for EC2."
     Type: String
     Default: "nx-keypair"
   s3cf:
-    Description:  S3 Bucket name for storage cloudformation templates.
+    Description:  "S3 bucket and folder where to store cloudformation templates."
     Type: String
     Default: "cloudformation-box/ecs-mesh-workshop"
   ip4Ec2:
-    Description: DNS of the identity provider for EC2
+    Description: "DNS of the trusted identity provider for EC2."
     Type: String
     Default: "ec2.amazonaws.com.cn" 
     #ec2.cn-northwest-1.amazonaws.com.cn
     #ec2.cn-north-1.amazonaws.com.cn
   useSpot:
-    Description: Use spot instance or not.
+    Description: "Use spot instance or not."
     Type: String
     Default: "yes" 
   volSize:
-    Description:  The size of root volume for ec2.
+    Description:  "The size of root volume for EC2."
     Type: Number
     Default: 40
   cpuTargetValue:
-    Description:  The target value for CPU metric.
+    Description:  "The target value for CPU metric."
     Type: String
     Default: 20
   desiredCount:
-    Description:  The number of desired ec2-instance.
+    Description:  "The number of desired ec2-instance."
     Type: Number
     Default: 4
   onDemandPercentage:
-    Description:  On-demand capacity percentage in the whole capacity. On-demand/Spot, example 25->25%.
+    Description:  "On-demand capacity percentage in the whole capacity. On-demand/Spot, example 25->25%."
     Type: Number
     Default: 25
   ecsami:
-    Description: ECS AMI ID - The Amazon Machine Image ID used for the cluster, leave it as the default value to get the latest AMI
+    Description: "ECS AMI ID - The Amazon Machine Image ID used for the cluster, leave it as the default value to get the latest AMI"
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id
 
 Conditions:
-  UseSpotCondition: 
-    Fn::Equals: 
-      - !Ref useSpot
-      - "yes"
+  UseSpotCondition: !Equals [ !Ref useSpot, 'yes' ]
+  OnZHY:  !Equals [ !Ref 'AWS::Region', cn-north-1 ]
+  OnBJS:  !Equals [ !Ref 'AWS::Region', cn-northwest-1 ]
 
 Mappings:
   RegionMap:
@@ -159,7 +162,7 @@ Resources:
         instanceType: !Ref instanceType
         ecsCluster: !GetAtt EcsCluster.Outputs.appEcsCluster
         s3Dns: !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
-        ip4Ec2: !Ref ip4Ec2
+        ip4Ec2: !If [OnZHY, !Ref ip4Ec2, !If [OnBJS, !Ref ip4Ec2, ‘ec2.amazonaws.com’]]
         nodesRole: 
           Fn::ImportValue:
              !Sub '${baseStackName}-nodesRole'
@@ -211,7 +214,7 @@ Resources:
         instanceType: !Ref instanceType
         ecsCluster: !GetAtt EcsCluster.Outputs.appEcsCluster
         s3Dns: !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
-        ip4Ec2: !Ref ip4Ec2
+        ip4Ec2: !If [OnZHY, !Ref ip4Ec2, !If [OnBJS, !Ref ip4Ec2, ‘ec2.amazonaws.com’]]
         nodesRole: 
           Fn::ImportValue:
              !Sub '${baseStackName}-nodesRole'

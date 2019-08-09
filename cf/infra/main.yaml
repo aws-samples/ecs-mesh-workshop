@@ -2,6 +2,10 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: >
   The template is designed for building infrastructure for ECS, included all necessary components.
 
+Metadata:
+  Authors:
+    Description: CC
+    
 Parameters:
   s3cf:
     Description:  "S3 bucket and folder where to store cloudformation templates."
@@ -28,6 +32,11 @@ Parameters:
     Description: ECS AMI ID - The Amazon Machine Image ID used for the cluster, leave it as the default value to get the latest AMI
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+Conditions:
+  OnZHY:  !Equals [ !Ref "AWS::Region", cn-north-1 ]
+  OnBJS:  !Equals [ !Ref "AWS::Region", cn-northwest-1 ]
+
 
 Mappings:
   RegionMap:
@@ -125,7 +134,7 @@ Resources:
         publicSubnet1b: !GetAtt Network4C.Outputs.publicSubnet1b
         publicSubnet1c: !GetAtt Network4C.Outputs.publicSubnet1c
         s3Dns:  !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
-        ip4Ec2: !Ref ip4Ec2
+        ip4Ec2: !If [OnZHY, !Ref ip4Ec2, !If [OnBJS, !Ref ip4Ec2, ‘ec2.amazonaws.com’]]
         bostionRole: !GetAtt Policy4C.Outputs.bastionRole
       Tags:
         - Key: Name
