@@ -136,7 +136,7 @@ Resources:
                 #!/bin/bash
                 mkdir -p /home/ec2-user/cloudwatch
                 cd /home/ec2-user/cloudwatch
-                curl https://${s3Dns}/amazoncloudwatch-agent-cn-northwest-1/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm -o amazon-cloudwatch-agent.rpm
+                curl https://${s3Dns}/amazoncloudwatch-agent-${AWS::Region}/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm -o amazon-cloudwatch-agent.rpm
                 sudo rpm -U ./amazon-cloudwatch-agent.rpm
 
                 aws s3 cp s3://${s3cf}/cloudwatch4ecs/amazon-cloudwatch-agent-ecs.json amazon-cloudwatch-agent-ecs.json --endpoint-url https://${s3Dns}/
@@ -166,7 +166,7 @@ Resources:
                 # sudo usermod -a -G docker ec2-user
 
                 # Install ssm-agent（added due to use ecs-optimiezed AMI）
-                sudo yum install -y https://${s3Dns}/amazon-ssm-cn-northwest-1/latest/linux_amd64/amazon-ssm-agent.rpm
+                sudo yum install -y https://${s3Dns}/amazon-ssm-${AWS::Region}/latest/linux_amd64/amazon-ssm-agent.rpm
                 sudo systemctl enable amazon-ssm-agent
                 sudo systemctl start amazon-ssm-agent
 

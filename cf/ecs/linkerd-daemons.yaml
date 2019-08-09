@@ -45,7 +45,6 @@ Parameters:
   s3Dns:
     Description: DNS of S3 endpoint.
     Type: String
-    Default: "s3.cn-northwest-1.amazonaws.com.cn"
 
 
 Resources:
@@ -83,7 +82,7 @@ Resources:
           #usermod -a -G docker ec2-user
 
           # Install ssm-agent （added due to use ecs-optimiezed AMI）
-          sudo yum install -y https://${s3Dns}/amazon-ssm-cn-northwest-1/latest/linux_amd64/amazon-ssm-agent.rpm
+          sudo yum install -y https://${s3Dns}/amazon-ssm-${AWS::Region}/latest/linux_amd64/amazon-ssm-agent.rpm
           sudo systemctl enable amazon-ssm-agent
           sudo systemctl start amazon-ssm-agent
         

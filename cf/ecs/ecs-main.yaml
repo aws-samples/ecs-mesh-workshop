@@ -20,16 +20,10 @@ Parameters:
     Description:  Key pair name for ec2.
     Type: String
     Default: "nx-keypair"
-  s3Dns:
-    Description:  DNS of S3 endpoint.
-    Type: String
-    Default: "s3.cn-northwest-1.amazonaws.com.cn"
-    #s3.cn-northwest-1.amazonaws.com.cn
-    #s3.cn-north-1.amazonaws.com.cn
   s3cf:
     Description:  S3 Bucket name for storage cloudformation templates.
     Type: String
-    Default: "cloudformation-box/ecs-star"
+    Default: "cloudformation-box/ecs-mesh-workshop"
   ip4Ec2:
     Description: DNS of the identity provider for EC2
     Type: String
@@ -67,6 +61,55 @@ Conditions:
       - !Ref useSpot
       - "yes"
 
+Mappings:
+  RegionMap:
+    ap-east-1:
+      S3Endpoint: "s3.ap-east-1.amazonaws.com"
+    ap-northeast-1:
+      S3Endpoint: "s3.ap-northeast-1.amazonaws.com"
+    ap-northeast-2:
+      S3Endpoint: "s3.ap-northeast-2.amazonaws.com"
+    ap-northeast-3:
+      S3Endpoint: "s3.ap-northeast-3.amazonaws.com"
+    ap-south-1:
+      S3Endpoint: "s3.ap-south-1.amazonaws.com"
+    ap-southeast-1:
+      S3Endpoint: "s3.ap-southeast-1.amazonaws.com"
+    ap-southeast-2:
+      S3Endpoint: "s3.ap-southeast-2.amazonaws.com"
+    ca-central-1:
+      S3Endpoint: "s3.ca-central-1.amazonaws.com"
+    cn-north-1:
+      S3Endpoint: "s3.cn-north-1.amazonaws.com.cn"
+    cn-northwest-1:
+      S3Endpoint: "s3.cn-northwest-1.amazonaws.com.cn"
+    eu-central-1:
+      S3Endpoint: "s3.eu-central-1.amazonaws.com"
+    eu-north-1:
+      S3Endpoint: "s3.eu-north-1.amazonaws.com"
+    eu-west-1:
+      S3Endpoint: "s3.eu-west-1.amazonaws.com"
+    eu-west-2:
+      S3Endpoint: "s3.eu-west-2.amazonaws.com"
+    eu-west-3:
+      S3Endpoint: "s3.eu-west-3.amazonaws.com"
+    me-south-1:
+      S3Endpoint: "s3.me-south-1.amazonaws.com"
+    sa-east-1:
+      S3Endpoint: "s3.sa-east-1.amazonaws.com"
+    us-east-1:
+      S3Endpoint: "s3.amazonaws.com"
+    us-east-2:
+      S3Endpoint: "s3.us-east-2.amazonaws.com"
+    us-gov-east-1:
+      S3Endpoint: "s3.us-gov-east-1.amazonaws.com"
+    us-gov-west-1:
+      S3Endpoint: "s3.us-gov-west-1.amazonaws.com"
+    us-west-1:
+      S3Endpoint: "s3.us-west-1.amazonaws.com"
+    us-west-2:
+      S3Endpoint: "s3.us-west-2.amazonaws.com"
+
 Resources:
   EcsCluster:
     Type: AWS::CloudFormation::Stack
@@ -76,7 +119,13 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-cluster'
-      TemplateURL:  !Sub 'https://${s3Dns}/${s3cf}/ecs/ecs-cluster.yaml'
+      TemplateURL:  !Join
+        - ''
+        - - 'https://'
+          - !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
+          - '/'
+          - !Ref s3cf
+          - '/ecs/ecs-cluster.yaml'
       TimeoutInMinutes: "60"
 
   EcsNodes:
@@ -109,7 +158,7 @@ Resources:
              !Sub '${baseStackName}-pri1cSubnet'
         instanceType: !Ref instanceType
         ecsCluster: !GetAtt EcsCluster.Outputs.appEcsCluster
-        s3Dns: !Ref s3Dns
+        s3Dns: !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
         ip4Ec2: !Ref ip4Ec2
         nodesRole: 
           Fn::ImportValue:
@@ -124,8 +173,20 @@ Resources:
       TemplateURL:  
         Fn::If: 
           - UseSpotCondition
-          - !Sub 'https://${s3Dns}/${s3cf}/ecs/ecs-nodes-spotasg.yaml'
-          - !Sub 'https://${s3Dns}/${s3cf}/ecs/ecs-nodes.yaml'
+          - !Join
+            - ''
+            - - 'https://'
+              - !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
+              - '/'
+              - !Ref s3cf
+              - '/ecs/ecs-nodes-spotasg.yaml'
+          - !Join
+            - ''
+            - - 'https://'
+              - !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
+              - '/'
+              - !Ref s3cf
+              - '/ecs/ecs-nodes.yaml'
       TimeoutInMinutes: "60"
 
   LinkerdViz:
@@ -149,7 +210,7 @@ Resources:
              !Sub '${baseStackName}-pub1cSubnet'
         instanceType: !Ref instanceType
         ecsCluster: !GetAtt EcsCluster.Outputs.appEcsCluster
-        s3Dns: !Ref s3Dns
+        s3Dns: !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
         ip4Ec2: !Ref ip4Ec2
         nodesRole: 
           Fn::ImportValue:
@@ -158,7 +219,13 @@ Resources:
       Tags:
         - Key: Name
           Value:  !Sub '${AWS::StackName}-linkerd-viz'
-      TemplateURL:  !Sub 'https://${s3Dns}/${s3cf}/ecs/linkerd-viz.yaml'
+      TemplateURL:  !Join
+        - ''
+        - - 'https://'
+          - !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
+          - '/'
+          - !Ref s3cf
+          - '/ecs/linkerd-viz.yaml'
       TimeoutInMinutes: "60"
 
   LinkerdDeamon:
@@ -178,14 +245,20 @@ Resources:
              !Sub '${baseStackName}-pub1cSubnet'
         ecsCluster: !GetAtt EcsCluster.Outputs.appEcsCluster
         nodeSecurityGroupId:  !GetAtt EcsNodes.Outputs.appsvrSecurityGroup
-        s3Dns: !Ref s3Dns
+        s3Dns: !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
         nodesRole: 
           Fn::ImportValue:
              !Sub '${baseStackName}-nodesRole'
       Tags:
         - Key: Name
           Value:  !Sub '${AWS::StackName}-linkerd-daemon'
-      TemplateURL:  !Sub 'https://${s3Dns}/${s3cf}/ecs/linkerd-daemons.yaml'
+      TemplateURL:  !Join
+        - ''
+        - - 'https://'
+          - !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
+          - '/'
+          - !Ref s3cf
+          - '/ecs/linkerd-daemons.yaml'
       TimeoutInMinutes: "60"
 
 
