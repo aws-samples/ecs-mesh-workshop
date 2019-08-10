@@ -6,7 +6,7 @@ It'll be Keep iterating and added more tutorials and guides from time to time.
 
 ## Tutorial
 
-### 1. [Setup infrastructure layer & standup ECS](./docs/Infrastructure.md)
+### 1. [Setup infrastructure layer and stand up ECS](./docs/Infrastructure.md)
 
 ### 2. [Using on-demand instance as worker nodes](./docs/Ondemand4Worker.md)
 
