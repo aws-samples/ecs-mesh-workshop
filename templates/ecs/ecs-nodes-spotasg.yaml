@@ -76,6 +76,8 @@ Parameters:
     Description: Role for nodes in ECS cluster.
     Type: String
 
+Conditions:
+  Only2AZ:  !Equals [ !Ref "AWS::Region", cn-north-1 ]
 
 Resources: 
   AppsvrSecurityGroup:
@@ -150,7 +152,7 @@ Resources:
                   curl https://${s3Dns}/amazoncloudwatch-agent-${AWS::Region}/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm -o amazon-cloudwatch-agent.rpm
                   sudo rpm -U ./amazon-cloudwatch-agent.rpm
 
-                  aws s3 cp s3://${s3cf}/cloudwatch4ecs/amazon-cloudwatch-agent-ecs.json amazon-cloudwatch-agent-ecs.json --endpoint-url https://${s3Dns}/
+                  aws s3 cp s3://${s3cf}/templates/cloudwatch4ecs/amazon-cloudwatch-agent-ecs.json amazon-cloudwatch-agent-ecs.json --endpoint-url https://${s3Dns}/
                   sudo cp ./amazon-cloudwatch-agent-ecs.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
                   cd /opt/aws/amazon-cloudwatch-agent/etc
                   sudo sed -i -e "s/{aws_stack_name}/${AWS::StackName}/g" amazon-cloudwatch-agent.json
@@ -161,7 +163,7 @@ Resources:
                   
                   mkdir -p /home/ec2-user/awslogs
                   cd /home/ec2-user/awslogs
-                  aws s3 cp s3://${s3cf}/awslogs/daemon.json daemon.json --endpoint-url https://${s3Dns}/
+                  aws s3 cp s3://${s3cf}/templates/awslogs/daemon.json daemon.json --endpoint-url https://${s3Dns}/
                   sudo cp ./daemon.json /etc/docker/daemon.json
                   cd /etc/docker/
                   sudo sed -i -e "s/{aws_stack_name}/${AWS::StackName}/g" daemon.json
@@ -384,7 +386,7 @@ Resources:
             - Fn::GetAZs: ""
         -
           Fn::Select:
-            - 2
+            - !If [ Only2AZ, 0, 2 ]
             - Fn::GetAZs: ""
       Cooldown: 180 #in seconds
       DesiredCapacity: !Ref desiredCount

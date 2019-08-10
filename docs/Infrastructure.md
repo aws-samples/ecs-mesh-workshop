@@ -12,7 +12,8 @@
 ```bash
 
 # setup variables
-cd ./bin;
+git clone https://github.com/aws-samples/ecs-mesh-workshop.git
+cd ecs-mesh-workshop/bin
 # modify environments in ./bashrc.ext
 source ./bashrc.ext
 
@@ -26,7 +27,7 @@ source ./bashrc.ext
 ```bash
 
 # register task
-cd ./cf/ecs
+cd ecs-mesh-workshop/templates/ecs
 aws ecs register-task-definition \
     --cli-input-json file://hello-world-task-definition.json
 

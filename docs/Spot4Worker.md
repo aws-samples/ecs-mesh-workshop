@@ -13,7 +13,7 @@
 ```bash
 
 # setup variables
-cd ./bin;
+cd ecs-mesh-workshop/bin;
 # modify environments in ./bashrc.ext
 source ./bashrc.ext
 

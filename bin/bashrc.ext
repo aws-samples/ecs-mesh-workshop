@@ -1,42 +1,38 @@
 
+export WORKSHOP_HOME=`pwd`/..
+
 # Region where you're goning to create all your resources.
-AWS_REGION=
+export AWS_REGION=
 # Account id is legal identitfier in AWS and refernced as part of resource id.
-AWS_ACCOUNT_ID=
+export AWS_ACCOUNT_ID=
+export AWS_PROFILE=
+
 
 # S3 Bucket name, where you stored all these scripts and templates. 
-BUCKET_NAME=
-# Endpoint DNS of S3 bucket
-BUCKET_ENDPOINT_DNS=
+export BUCKET_NAME=
 # Name of the key pair, which used to generate PEM file. 
-KEY_PAIR=
+export KEY_PAIR=
 
 # Stack name for build infrastructure: VPC, Subnet, NAT, etc.
-BASE_STACK_NAME=
+export BASE_STACK_NAME=
 
 # Stack name for build ECS cluster environment on top of built infrastructure
-ECS_STACK_NAME=
+export ECS_STACK_NAME=
 # Instance type for ECS work nodes. 
-INSTANCE_TYPE_FOR_ECS=
+export INSTANCE_TYPE_FOR_ECS=c5.large
 # Disk volume size for each node, unit is gigabyte
-NODE_VOLUME_SIZE=
+export NODE_VOLUME_SIZE=40
+# Target CPU utilization for atuo scaling of work nodes policy, unit is percentage
+export CPU_TARGET_VALUE=20
 # Desired capacity of total work nodes, eg: number : 4
-NODE_DESIRED_COUNT=
+export NODE_DESIRED_COUNT=4
 # Ondemand capacity percentage in overall desired capacity, eg: number -> number% : 25 -> 25%
-ON_DEMAND_PERCENTAGE=
+export ON_DEMAND_PERCENTAGE=25
 
 
 #BASE_VPC_ID //retrieve from stack output
-#LOAD_BALANCING_ARN //retrieve from stack output
 
-# Stack name for deployment
-DEPLOY_STACK_NAME=
-# Target cluster
-ECS_CLUSTER_NAME=
-# Service name for your application
-ECS_SERVICE_NAME=
-# Image repository name for your applicaton 
-ECR_REPO_NAME=
+#export LOAD_BALANCING_ARN //retrieve from stack output
 
 #ECR_IMAGE_VERSION  //retrieve from building pipeline
 

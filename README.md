@@ -1,6 +1,8 @@
 # ECS Mesh Workshop
 
-This quick start solution is designed to easily launch ECS with various powerful features, such as spot fleet, auto scaling with mixed fleet, service mesh, monitoring tools, etc. and can be customized easily. Linkerd, Prometheus, and Grafana as major components are integrated ECS in this solution but you can use your favorite.
+This quick start solution is designed to easily launch ECS with various powerful features, such as spot fleet, auto scaling with mixed fleet, service mesh, monitoring tools, and more. Linkerd, Prometheus, and Grafana as major components are integrated ECS in this solution but you can use your favorite.
+
+It'll be Keep iterating and added more tutorials and guides from time to time.
 
 ## Tutorial
 
@@ -28,8 +30,9 @@ This quick start solution is designed to easily launch ECS with various powerful
 
 ## Todo
 
-- [ ]
-- [ ]
+- [ ] 5. Manage persistent volumn with different storages
+- [ ] 6. Centralized log solution with Fluent Bit
+- [ ] 7. Integrate CI/CD with ECS cluster
 
 ## Resources
 

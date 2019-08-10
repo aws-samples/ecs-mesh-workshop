@@ -1,9 +1,11 @@
 #!/bin/bash
 
+echo "Initial environment......"
 source ./bashrc.ext
+echo "Done"
 
-cd bin
+echo "Setup infrastructure layer......"
 ./infra.sh
 
-cd bin
+echo "Setup ECS cluster......"
 ./ecs.sh $1

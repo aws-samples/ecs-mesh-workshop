@@ -93,7 +93,7 @@ Resources:
                 curl https://${s3Dns}/amazoncloudwatch-agent-${AWS::Region}/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm -o amazon-cloudwatch-agent.rpm
                 sudo rpm -U ./amazon-cloudwatch-agent.rpm
 
-                aws s3 cp s3://${s3cf}/cloudwatch4ecs/amazon-cloudwatch-agent-ecs.json amazon-cloudwatch-agent-ecs.json --endpoint-url https://${s3Dns}/
+                aws s3 cp s3://${s3cf}/templates/cloudwatch4ecs/amazon-cloudwatch-agent-ecs.json amazon-cloudwatch-agent-ecs.json --endpoint-url https://${s3Dns}/
                 sudo cp ./amazon-cloudwatch-agent-ecs.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
                 cd /opt/aws/amazon-cloudwatch-agent/etc
                 sudo sed -i -e "s/{aws_stack_name}/${AWS::StackName}/g" amazon-cloudwatch-agent.json
@@ -125,7 +125,7 @@ Resources:
       IamInstanceProfile: !Ref Ec2InstanceProfile
       KeyName: !Ref keyPairName
       Monitoring: true
-      DisableApiTermination: true
+      #DisableApiTermination: false
       NetworkInterfaces:
         - AssociatePublicIpAddress: true
           DeviceIndex: 0

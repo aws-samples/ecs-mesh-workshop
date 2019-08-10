@@ -12,7 +12,7 @@
 ```bash
 
 # setup variables
-cd ./bin;
+cd ecs-mesh-workshop/bin;
 # modify environments in ./bashrc.ext
 source ./bashrc.ext
 
@@ -69,7 +69,7 @@ open http://localhost:8500
 
 
 # register example applications
-cd ./cf/ecs
+cd ecs-mesh-workshop/templates/ecs
 aws ecs register-task-definition --cli-input-json file://example-front-task-definition.json
 aws ecs register-task-definition --cli-input-json file://example-store-task-definition.json
 aws ecs register-task-definition --cli-input-json file://hello-world-mesh-task-definition.json

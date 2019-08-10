@@ -1,45 +1,30 @@
 #!/bin/bash
+set -xe
 
+echo "Initial infrastructure environment ..."
 source ./bashrc.ext
 
-echo "Seting infrastructure environment ..."
-aws cloudformation --region $AWS_REGION describe-stacks --stack-name $BASE_STACK_NAME
-isExist=$?
+echo "Uploading templates to S3 bucket..."
+! aws s3api create-bucket --bucket $BUCKET_NAME \
+      --region $AWS_REGION \
+      --create-bucket-configuration LocationConstraint=$AWS_REGION
+aws s3 cp $WORKSHOP_HOME/templates s3://$BUCKET_NAME/templates/ --recursive
 
-if [ $isExist -ne 0 ]
+isExist=`aws cloudformation --region $AWS_REGION describe-stacks --stack-name $BASE_STACK_NAME|jq .Stacks[].StackId`
+
+if [ "$isExist" == "" ]
 then
-
   echo "Createing new stack -> $BASE_STACK_NAME"
-  aws cloudformation --region $AWS_REGION create-stack --stack-name $BASE_STACK_NAME \
-    --template-url `aws s3 presign s3://$BUCKET_NAME/infra/main.yaml`  \
-    --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-    --parameters \
-    ParameterKey=keyPairName,ParameterValue=$KEY_PAIR \
-    ParameterKey=s3cf,ParameterValue=$BUCKET_NAME \
-    ParameterKey=s3Dns,ParameterValue=$BUCKET_ENDPOINT_DNS
-  isExist=$?
-
-  if [ $isExist -eq 0 ]
-  then
-    aws cloudformation --region $AWS_REGION wait stack-create-complete --stack-name $BASE_STACK_NAME
-  fi
-
 else
-
-  echo "Updating new stack -> $BASE_STACK_NAME"
-  aws cloudformation --region $AWS_REGION update-stack --stack-name $BASE_STACK_NAME \
-    --template-url `aws s3 presign s3://$BUCKET_NAME/infra/main.yaml`  \
-    --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-    --parameters \
-    ParameterKey=keyPairName,ParameterValue=$KEY_PAIR \
-    ParameterKey=s3cf,ParameterValue=$BUCKET_NAME \
-    ParameterKey=s3Dns,ParameterValue=$BUCKET_ENDPOINT_DNS
-  isExist=$?
-
-  if [ $isExist -eq 0 ]
-  then
-    aws cloudformation --region $AWS_REGION wait stack-update-complete --stack-name $BASE_STACK_NAME
-  fi
-
+  echo "Updating exiting stack -> $BASE_STACK_NAME"
 fi
+
+aws cloudformation --region $AWS_REGION deploy --stack-name $BASE_STACK_NAME \
+  --template-file $WORKSHOP_HOME/templates/infra/main.yaml  \
+  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+  --parameter-overrides \
+  keyPairName=$KEY_PAIR \
+  s3cf=$BUCKET_NAME \
+  --tags Name=ECS-MESH-WORKSHOP
+
 echo "Done"

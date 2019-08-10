@@ -103,7 +103,7 @@ Resources:
           - !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
           - '/'
           - !Ref s3cf
-          - '/infra/network.yaml'
+          - '/templates/infra/network.yaml'
       TimeoutInMinutes: "60"
 
   Policy4C:
@@ -118,7 +118,7 @@ Resources:
           - !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
           - '/'
           - !Ref s3cf
-          - '/infra/policy.yaml'
+          - '/templates/infra/policy.yaml'
       TimeoutInMinutes: "60"
 
 
@@ -145,7 +145,7 @@ Resources:
           - Fn::FindInMap: [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
           - '/'
           - !Ref s3cf
-          - '/infra/bastion.yaml'
+          - '/templates/infra/bastion.yaml'
       TimeoutInMinutes: "60"
 
 Outputs:

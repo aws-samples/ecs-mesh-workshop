@@ -128,7 +128,7 @@ Resources:
           - !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
           - '/'
           - !Ref s3cf
-          - '/ecs/ecs-cluster.yaml'
+          - '/templates/ecs/ecs-cluster.yaml'
       TimeoutInMinutes: "60"
 
   EcsNodes:
@@ -182,14 +182,14 @@ Resources:
               - !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
               - '/'
               - !Ref s3cf
-              - '/ecs/ecs-nodes-spotasg.yaml'
+              - '/templates/ecs/ecs-nodes-spotasg.yaml'
           - !Join
             - ''
             - - 'https://'
               - !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
               - '/'
               - !Ref s3cf
-              - '/ecs/ecs-nodes.yaml'
+              - '/templates/ecs/ecs-nodes.yaml'
       TimeoutInMinutes: "60"
 
   LinkerdViz:
@@ -228,7 +228,7 @@ Resources:
           - !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
           - '/'
           - !Ref s3cf
-          - '/ecs/linkerd-viz.yaml'
+          - '/templates/ecs/linkerd-viz.yaml'
       TimeoutInMinutes: "60"
 
   LinkerdDeamon:
@@ -261,7 +261,7 @@ Resources:
           - !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
           - '/'
           - !Ref s3cf
-          - '/ecs/linkerd-daemons.yaml'
+          - '/templates/ecs/linkerd-daemons.yaml'
       TimeoutInMinutes: "60"
 
 
@@ -279,3 +279,6 @@ Outputs:
   elbDns:
     Description: DNS name of Load Balancer.
     Value:  !GetAtt EcsNodes.Outputs.elbDns
+  appEcsCluster:
+    Description: ECS cluster name.
+    Value:  !GetAtt EcsCluster.Outputs.appEcsCluster

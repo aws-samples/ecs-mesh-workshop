@@ -1,3 +1,5 @@
 .idea
 my
 **/*.DS_Store
+bashrc.tmp
+**/*.tmp
