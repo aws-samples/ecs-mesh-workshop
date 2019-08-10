@@ -1,5 +1,7 @@
 # ECS Mesh Workshop
 
+<img src="./docs/images/ecs-gopher.png" width="240"/>
+
 This quick start solution is designed to easily launch ECS with various powerful features, such as spot fleet, auto scaling with mixed fleet, service mesh, monitoring tools, and more. Linkerd, Prometheus, and Grafana as major components are integrated ECS in this solution but you can use your favorite.
 
 It'll be Keep iterating and added more tutorials and guides from time to time.
