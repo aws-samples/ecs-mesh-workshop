@@ -18,7 +18,7 @@ It'll be Keep iterating and added more tutorials and guides from time to time.
 
 ### 5. Manage persistent volumn with different storages
 
-### 6. Centralized log solution with Fluent Bit
+### 6. Centralized log solution with Fluent Bit and ElasticSearch
 
 ### 7. Integrate CI/CD with ECS cluster
 
@@ -33,7 +33,7 @@ It'll be Keep iterating and added more tutorials and guides from time to time.
 ## Todo
 
 - [ ] 5. Manage persistent volumn with different storages
-- [ ] 6. Centralized log solution with Fluent Bit
+- [ ] 6. Centralized log solution with Fluent Bit and ElasticSearch
 - [ ] 7. Integrate CI/CD with ECS cluster
 
 ## Resources
