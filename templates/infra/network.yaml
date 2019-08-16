@@ -12,8 +12,6 @@ Parameters:
     Description: "Comma-delimited list of CIDR blocks."
     Type: CommaDelimitedList
 
-Conditions:
-  Only2AZ:  !Equals [ !Ref "AWS::Region", cn-north-1 ]
 
 Resources:
   BaseVPC:
@@ -53,19 +51,6 @@ Resources:
         - Key: Name
           Value: !Sub '${AWS::StackName}-public1b'
       VpcId:  !Ref BaseVPC
-  Pub1cSubnet:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-          - !If [ Only2AZ, 0, 2 ]
-          - Fn::GetAZs: ""
-      CidrBlock: !Select [2, !Ref subnetCidr]
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: !Sub '${AWS::StackName}-public1c'
-      VpcId:  !Ref BaseVPC
   Pri1aSubnet:
     Type: AWS::EC2::Subnet
     Properties:
@@ -73,7 +58,7 @@ Resources:
         Fn::Select:
           - 0
           - Fn::GetAZs: ""
-      CidrBlock: !Select [3, !Ref subnetCidr]
+      CidrBlock: !Select [2, !Ref subnetCidr]
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
@@ -87,24 +72,11 @@ Resources:
         Fn::Select:
           - 1
           - Fn::GetAZs: ""
-      CidrBlock: !Select [4, !Ref subnetCidr]
+      CidrBlock: !Select [3, !Ref subnetCidr]
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-private1b'
-      VpcId:  !Ref BaseVPC
-  Pri1cSubnet:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-          - !If [ Only2AZ, 0, 2 ]
-          - Fn::GetAZs: ""
-      CidrBlock: !Select [5, !Ref subnetCidr]
-      MapPublicIpOnLaunch: false
-      Tags:
-        - Key: Name
-          Value: !Sub '${AWS::StackName}-private1c'
       VpcId:  !Ref BaseVPC
 
   VpcInternetGateway:
@@ -119,16 +91,28 @@ Resources:
       VpcId:  !Ref BaseVPC
       InternetGatewayId:  !Ref VpcInternetGateway
 
-  Eip4Natgateway:
+  Eip4Natgateway1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  Eip4Natgateway2:
     Type: AWS::EC2::EIP
     Properties:
       Domain: vpc
 
-  NatGateway:
+  NatGateway1:
     Type: AWS::EC2::NatGateway
     Properties:
-      AllocationId: !Sub '${Eip4Natgateway.AllocationId}'
+      AllocationId: !Sub '${Eip4Natgateway1.AllocationId}'
       SubnetId: !Ref Pub1aSubnet
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-ngw'
+  NatGateway2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !Sub '${Eip4Natgateway2.AllocationId}'
+      SubnetId: !Ref Pub1bSubnet
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-ngw'
@@ -141,12 +125,20 @@ Resources:
           Value:  !Sub '${AWS::StackName}-public-rt'
       VpcId: !Ref BaseVPC
 
-  PrivateRoutetable:
+  PrivateRoutetable1:
     Type: AWS::EC2::RouteTable
     Properties:
       Tags:
         - Key:  Name
-          Value:  !Sub '${AWS::StackName}-private-rt'
+          Value:  !Sub '${AWS::StackName}-private-rt1'
+      VpcId: !Ref BaseVPC
+
+  PrivateRoutetable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key:  Name
+          Value:  !Sub '${AWS::StackName}-private-rt2'
       VpcId: !Ref BaseVPC
 
   Route4PublicRoutetable:
@@ -156,13 +148,22 @@ Resources:
       GatewayId: !Ref VpcInternetGateway
       RouteTableId: !Ref PublicRoutetable
 
-  Route4PrivateRoutetable:
+  Route4PrivateRoutetable1:
     Type: AWS::EC2::Route
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
       #Note: use NatGatewayId otherwise throw exceptio - "Route did not stabilize in expected time"
-      NatGatewayId: !Ref NatGateway
-      RouteTableId: !Ref PrivateRoutetable
+      NatGatewayId: !Ref NatGateway1
+      RouteTableId: !Ref PrivateRoutetable1
+
+  Route4PrivateRoutetable2:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      #Note: use NatGatewayId otherwise throw exceptio - "Route did not stabilize in expected time"
+      NatGatewayId: !Ref NatGateway2
+      RouteTableId: !Ref PrivateRoutetable2
+
 
   AssociationPub1aSubnet:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -174,26 +175,18 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRoutetable
       SubnetId: !Ref Pub1bSubnet
-  AssociationPub1cSubnet:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PublicRoutetable
-      SubnetId: !Ref Pub1cSubnet
+
   AssociationPri1aSubnet:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref PrivateRoutetable
+      RouteTableId: !Ref PrivateRoutetable1
       SubnetId: !Ref Pri1aSubnet
   AssociationPri1bSubnet:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref PrivateRoutetable
+      RouteTableId: !Ref PrivateRoutetable2
       SubnetId: !Ref Pri1bSubnet
-  AssociationPri1cSubnet:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PrivateRoutetable
-      SubnetId: !Ref Pri1cSubnet
+
 
 Outputs:
   baseVpc:
@@ -205,15 +198,9 @@ Outputs:
   publicSubnet1b:
     Description: Public subnet 1b.
     Value:  !Ref Pub1bSubnet
-  publicSubnet1c:
-    Description: Public subnet 1c.
-    Value:  !Ref Pub1cSubnet
   privateSubnet1a:
     Description: Private subnet 1a.
     Value:  !Ref Pri1aSubnet
   privateSubnet1b:
     Description: Private subnet 1b.
     Value:  !Ref Pri1bSubnet
-  privateSubnet1c:
-    Description: Private subnet 1c.
-    Value:  !Ref Pri1cSubnet

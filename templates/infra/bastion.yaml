@@ -25,9 +25,6 @@ Parameters:
   publicSubnet1b:
     Description:  subnet to launch virtual server in.
     Type: AWS::EC2::Subnet::Id
-  publicSubnet1c:
-    Description:  subnet to launch virtual server in.
-    Type: AWS::EC2::Subnet::Id
   instanceType:
     Description:  instance tyep for ec2.
     Type: String
@@ -36,10 +33,6 @@ Parameters:
     Description: DNS of S3 endpoint.
     Type: String
     Default: "s3.cn-northwest-1.amazonaws.com.cn"
-  ip4Ec2:
-    Description: DNS of the identity provider for EC2
-    Type: String
-    Default: "ec2.amazonaws.com.cn" 
   bostionRole:
     Description: Role for bastion
     Type: String
@@ -78,8 +71,8 @@ Resources:
       Roles:
         - !Ref bostionRole
 
-  BastionEc2Instance:
-    Type: AWS::EC2::Instance
+  BastionLaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
     Metadata:
       AWS::CloudFormation::Init:
         config:
@@ -108,9 +101,13 @@ Resources:
               mode: "000755"
               owner: "ec2-user"
               group: "ec2-user"
+
           commands:
             agent1:
-              command:  "./first-run.sh"
+              command:  "./first-run.sh >./run.log 2>./run.log"
+              env:
+                STACK_NAME: !Sub '${AWS::StackName}'
+                AWS_DEFAULT_REGION: !Sub '${AWS::Region}'
               cwd: "/home/ec2-user"
               ignoreErrors: false
       AWS::CloudFormation::Authentication:
@@ -119,20 +116,19 @@ Resources:
           roleName: !Ref bostionRole
 
     Properties:
-      #AdditionalInfo: String     # optional
-      ImageId:  !Ref ami
-      InstanceType: !Ref instanceType
+      #AssociatePublicIpAddress: true
       IamInstanceProfile: !Ref Ec2InstanceProfile
+      ImageId: !Ref ami
+      InstanceMonitoring: true
+      InstanceType: !Ref instanceType
       KeyName: !Ref keyPairName
-      Monitoring: true
-      #DisableApiTermination: false
-      NetworkInterfaces:
-        - AssociatePublicIpAddress: true
-          DeviceIndex: 0
-          GroupSet:
-            -
-              !Ref BastionSecurityGroup
-          SubnetId: !Ref  publicSubnet1a
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 40
+            DeleteOnTermination: true
+      SecurityGroups:
+        - !Ref BastionSecurityGroup
       UserData:
         Fn::Base64:
           !Sub |
@@ -144,17 +140,65 @@ Resources:
             sudo amazon-linux-extras install -y ecs #; sudo systemctl enable --now ecs
             sudo usermod -a -G docker ec2-user
 
-            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource BastionEc2Instance --region ${AWS::Region}
-            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource BastionEc2Instance --region ${AWS::Region}
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource BastionLaunchConfiguration --region ${AWS::Region}
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource BastionAutoscalingGroup --region ${AWS::Region}
 
+  BastionAutoscalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AvailabilityZones:
+        -
+          Fn::Select:
+            - 0
+            - Fn::GetAZs: ""
+        -
+          Fn::Select:
+            - 1
+            - Fn::GetAZs: ""
+      Cooldown: 30
+      DesiredCapacity: 1
+      # HealthCheckGracePeriod: Integer     # optional
+      # HealthCheckType: String     # optional
+      # InstanceId: String     # optional
+      LaunchConfigurationName: !Ref BastionLaunchConfiguration
+      MaxSize: 2
+      MetricsCollection:
+        -
+          Granularity: "1Minute"
+          Metrics:
+            - "GroupMinSize"
+            - "GroupMaxSize"
+            - "GroupDesiredCapacity"
+            - "GroupInServiceInstances"
+            - "GroupPendingInstances"
+            - "GroupStandbyInstances"
+            - "GroupTerminatingInstances"
+            - "GroupTotalInstances"
+      MinSize: 1
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-bastion-ec2'
-        - Key: Owner
-          Value: CC
+          PropagateAtLaunch: true
         - Key: Purpose
-          Value: Bastion
+          Value: bastion
+          PropagateAtLaunch: true
+        - Key: Member
+          Value: bastion-of-BastionAutoscalingGroup
+          PropagateAtLaunch: true
+      VPCZoneIdentifier:
+        - !Ref publicSubnet1a
+        - !Ref publicSubnet1b
+    UpdatePolicy:
+        AutoScalingScheduledAction:
+          IgnoreUnmodifiedGroupSizeProperties: 'true'
+        AutoScalingRollingUpdate:
+          MinInstancesInService: '1'
+          MaxBatchSize: '2'
+          WaitOnResourceSignals: 'true'
+          MinSuccessfulInstancesPercent: 100
+          # PauseTime: PT15M
     CreationPolicy:
       ResourceSignal:
         Count:  1
-        Timeout: PT5M
+        Timeout: PT15M
+

@@ -24,16 +24,10 @@ Parameters:
   publicSubnet1b:
     Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
-  publicSubnet1c:
-    Description:  "Subnet to launch virtual server in."
-    Type: AWS::EC2::Subnet::Id
   privateSubnet1a:
     Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
   privateSubnet1b:
-    Description:  "Subnet to launch virtual server in."
-    Type: AWS::EC2::Subnet::Id
-  privateSubnet1c:
     Description:  "Subnet to launch virtual server in."
     Type: AWS::EC2::Subnet::Id
   # ecsClusterTargetCapacity:
@@ -75,9 +69,6 @@ Parameters:
   nodesRole:
     Description: Role for nodes in ECS cluster.
     Type: String
-
-Conditions:
-  Only2AZ:  !Equals [ !Ref "AWS::Region", cn-north-1 ]
 
 Resources: 
   AppsvrSecurityGroup:
@@ -384,10 +375,6 @@ Resources:
           Fn::Select:
             - 1
             - Fn::GetAZs: ""
-        -
-          Fn::Select:
-            - !If [ Only2AZ, 0, 2 ]
-            - Fn::GetAZs: ""
       Cooldown: 180 #in seconds
       DesiredCapacity: !Ref desiredCount
       # HealthCheckGracePeriod: Integer     #in seconds
@@ -439,7 +426,6 @@ Resources:
       VPCZoneIdentifier:
         - !Ref privateSubnet1a
         - !Ref privateSubnet1b
-        - !Ref privateSubnet1c
     UpdatePolicy:
         AutoScalingScheduledAction:
           IgnoreUnmodifiedGroupSizeProperties: 'true'
@@ -480,7 +466,6 @@ Resources:
       Subnets:
           - !Ref publicSubnet1a
           - !Ref publicSubnet1b
-          - !Ref publicSubnet1c
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-elb'

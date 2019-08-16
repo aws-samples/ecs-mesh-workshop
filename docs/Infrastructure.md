@@ -1,5 +1,10 @@
 # Setup infrastructure layer & standup ECS
 
+We're going to build the infrastructure as following achitecture diagram through CloudFormation templates.
+
+<img src="../docs/images/infra-diagram.png"/>
+
+
 ## Prerequisite
 
 - Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) with latest version.

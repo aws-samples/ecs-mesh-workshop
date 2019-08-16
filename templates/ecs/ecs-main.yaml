@@ -147,18 +147,12 @@ Resources:
         publicSubnet1b:  
           Fn::ImportValue:
              !Sub '${baseStackName}-pub1bSubnet'
-        publicSubnet1c:  
-          Fn::ImportValue:
-             !Sub '${baseStackName}-pub1cSubnet'
         privateSubnet1a:  
           Fn::ImportValue:
              !Sub '${baseStackName}-pri1aSubnet'
         privateSubnet1b:  
           Fn::ImportValue:
              !Sub '${baseStackName}-pri1bSubnet'
-        privateSubnet1c:  
-          Fn::ImportValue:
-             !Sub '${baseStackName}-pri1cSubnet'
         instanceType: !Ref instanceType
         ecsCluster: !GetAtt EcsCluster.Outputs.appEcsCluster
         s3Dns: !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
@@ -208,9 +202,6 @@ Resources:
         publicSubnet1b:  
           Fn::ImportValue:
              !Sub '${baseStackName}-pub1bSubnet'
-        publicSubnet1c:  
-          Fn::ImportValue:
-             !Sub '${baseStackName}-pub1cSubnet'
         instanceType: !Ref instanceType
         ecsCluster: !GetAtt EcsCluster.Outputs.appEcsCluster
         s3Dns: !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
@@ -243,9 +234,6 @@ Resources:
         publicSubnet1b:  
           Fn::ImportValue:
              !Sub '${baseStackName}-pub1bSubnet'
-        publicSubnet1c:  
-          Fn::ImportValue:
-             !Sub '${baseStackName}-pub1cSubnet'
         ecsCluster: !GetAtt EcsCluster.Outputs.appEcsCluster
         nodeSecurityGroupId:  !GetAtt EcsNodes.Outputs.appsvrSecurityGroup
         s3Dns: !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
