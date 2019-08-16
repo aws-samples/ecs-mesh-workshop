@@ -18,7 +18,7 @@ Parameters:
   cidr4Subnet:
     Description: "Comma-delimited list of CIDR blocks."
     Type: String
-    Default: "10.0.10.0/24, 10.0.30.0/24, 10.0.50.0/24, 10.0.20.0/24, 10.0.40.0/24, 10.0.60.0/24"
+    Default: "10.0.10.0/24, 10.0.30.0/24, 10.0.60.0/22, 10.0.80.0/22"
   keyPairName:
     Description:  "Key pair name for EC2 and must be created before luanch stack."
     Type: String
@@ -32,10 +32,6 @@ Parameters:
     Description: ECS AMI ID - The Amazon Machine Image ID used for the cluster, leave it as the default value to get the latest AMI
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
-
-Conditions:
-  OnZHY:  !Equals [ !Ref "AWS::Region", cn-north-1 ]
-  OnBJS:  !Equals [ !Ref "AWS::Region", cn-northwest-1 ]
 
 
 Mappings:
@@ -132,9 +128,7 @@ Resources:
         s3cf: !Ref s3cf
         publicSubnet1a: !GetAtt Network4C.Outputs.publicSubnet1a
         publicSubnet1b: !GetAtt Network4C.Outputs.publicSubnet1b
-        publicSubnet1c: !GetAtt Network4C.Outputs.publicSubnet1c
         s3Dns:  !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
-        ip4Ec2: !If [OnZHY, !Ref ip4Ec2, !If [OnBJS, !Ref ip4Ec2, ‘ec2.amazonaws.com’]]
         bostionRole: !GetAtt Policy4C.Outputs.bastionRole
       Tags:
         - Key: Name
@@ -164,11 +158,6 @@ Outputs:
     Value:  !GetAtt Network4C.Outputs.publicSubnet1b
     Export:
       Name: !Sub '${AWS::StackName}-pub1bSubnet'
-  publicSubnet1c:
-    Description: Public subnet 1c.
-    Value:  !GetAtt Network4C.Outputs.publicSubnet1c
-    Export:
-      Name: !Sub '${AWS::StackName}-pub1cSubnet'
   privateSubnet1a:
     Description: Private subnet 1a.
     Value:  !GetAtt Network4C.Outputs.privateSubnet1a
@@ -179,11 +168,6 @@ Outputs:
     Value:  !GetAtt Network4C.Outputs.privateSubnet1b
     Export:
       Name: !Sub '${AWS::StackName}-pri1bSubnet'
-  privateSubnet1c:
-    Description: Private subnet 1c.
-    Value:  !GetAtt Network4C.Outputs.privateSubnet1c
-    Export:
-      Name: !Sub '${AWS::StackName}-pri1cSubnet'
   bastionPolicy:
     Description: Policy ARN for bastion.
     Value:  !GetAtt Policy4C.Outputs.bastionPolicy

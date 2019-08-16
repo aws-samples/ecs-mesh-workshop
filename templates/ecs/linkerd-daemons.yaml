@@ -13,18 +13,6 @@ Parameters:
   publicSubnet1b:
     Description:  subnet to launch virtual server in.
     Type: AWS::EC2::Subnet::Id
-  publicSubnet1c:
-    Description:  subnet to launch virtual server in.
-    Type: AWS::EC2::Subnet::Id
-  # privateSubnet1a:
-  #   Description:  subnet to launch virtual server in.
-  #   Type: AWS::EC2::Subnet::Id
-  # privateSubnet1b:
-  #   Description:  subnet to launch virtual server in.
-  #   Type: AWS::EC2::Subnet::Id
-  # privateSubnet1c:
-  #   Description:  subnet to launch virtual server in.
-  #   Type: AWS::EC2::Subnet::Id
   instanceType:
     Description:  instance tyep for ec2.
     Type: String
