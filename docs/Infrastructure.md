@@ -76,6 +76,9 @@ curl "http://$ELB_DNS/hello"
 ### 3. Clean-up
 
 ```bash
-# delete stacks in CloudFormation
+
+# delete all stacks in CloudFormation
+cd ecs-mesh-workshop/bin
+./clean_up.sh
 
 ```
