@@ -30,7 +30,14 @@ source ./bashrc.ext
 
 ### 5. Clean-up
 
+> Note: Don't execute 'clean_up.sh' to remove all esources if you'd like to continue the workshop, so you'll spend less time to waiting provsion resources!!! 
+
 ```bash
-# delete stacks in CloudFormation
+
+# delete all stacks in CloudFormation
+cd ecs-mesh-workshop/bin
+./clean_up.sh
+
 
 ```
+
