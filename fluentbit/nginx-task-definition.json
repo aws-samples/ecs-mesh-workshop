@@ -1,0 +1,25 @@
+
+{
+	"requiresCompatibilities": [
+		"EC2"
+	],
+	"containerDefinitions": [{
+		"name": "nginx-fluentbitdemo",
+		"image": "nginx:1.17",
+		"memory": 100,
+		"essential": true,
+		"portMappings": [{
+			"hostPort": 80,
+			"protocol": "tcp",
+			"containerPort": 80
+		}],
+		"logConfiguration": {
+			"logDriver": "fluentd",
+			"options": {
+				"fluentd-address": "unix:///var/run/fluent.sock",
+				"tag": "logs-from-nginx"
+			}
+		}
+	}],
+	"family": "nginx-fluentbitdemo"
+}

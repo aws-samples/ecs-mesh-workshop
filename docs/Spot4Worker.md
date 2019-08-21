@@ -22,11 +22,41 @@ source ./bashrc.ext
 
 ```
 
-### 2. Observe releavant instance infroamtion
+### 2. Observe information of relevant instances
+
+```bash
+
+# using aws-cli / ec2 console: 3 spot + 1 normal 
+aws ec2 describe-instances \
+    --filters Name=instance-state-name,Values=running Name=tag:Member,Values=appserver-of-AutoScalingGroup  \
+    --output json \
+    | jq '.Reservations[].Instances[].LaunchTime, .Reservations[].Instances[].InstanceLifecycle, .Reservations[].Instances[].InstanceType' \
+    | paste - - - -
+
+```
 
 ### 3. Terminate spot instance and watch logs
 
+Watch logs form CloudWatch under ECS cluster, which created in previous step, such as {aws_stack_name}/ec2/autoscaling/var/log/docker -> {cluster}/{container_instance_id}.
+
+```bash
+
+# execute following command to terminate instance with right id
+aws ec2 terminate-instances --instance-ids <instance_id>
+
+```
+
 ### 4. Terminate on-demand instance and watch logs
+
+Watch logs form CloudWatch under ECS cluster, which created in previous step, such as {aws_stack_name}/ec2/autoscaling/var/log/docker -> {cluster}/{container_instance_id}
+
+```bash
+
+# execute following command to terminate instance with right id
+aws ec2 terminate-instances --instance-ids <instance_id>
+
+```
+
 
 ### 5. Clean-up
 

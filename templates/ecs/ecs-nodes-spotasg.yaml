@@ -133,7 +133,10 @@ Resources:
             files:
               /etc/ecs/ecs.config:
                 content:
-                  !Sub 'ECS_CLUSTER=${ecsCluster}'
+                  !Sub |
+                  ECS_CLUSTER=${ecsCluster}
+                  ECS_AVAILABLE_LOGGING_DRIVERS=["awslogs","fluentd"]
+
               /home/ec2-user/first-run.sh:
                 content:
                   !Sub |

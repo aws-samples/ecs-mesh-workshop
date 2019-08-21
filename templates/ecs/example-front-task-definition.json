@@ -1,0 +1,23 @@
+
+{
+	"requiresCompatibilities": [
+		"EC2"
+	],
+	"containerDefinitions": [{
+		"name": "todo-front",
+		"image": "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com.cn/fluent-bit:latest",
+		"memory": 128,
+		"essential": true,
+		"portMappings": [{
+			"protocol": "tcp",
+			"containerPort": 9080
+		}],
+		"logConfiguration": {
+			"logDriver": "awslogs",
+			"options": {
+				"awslogs-group": "example-todo-front"
+			}
+		}
+	}],
+	"family": "todo-front"
+}
