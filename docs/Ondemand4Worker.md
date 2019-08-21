@@ -21,7 +21,18 @@ source ./bashrc.ext
 
 ```
 
-### 2. Observe releavant instance infroamtion
+### 2. Observe information of relevant instances 
+
+```bash
+
+# using aws-cli / ec2 console: 4 normal 
+aws ec2 describe-instances \
+    --filters Name=instance-state-name,Values=running Name=tag:Member,Values=appserver-of-AutoScalingGroup  \
+    --output json \
+    | jq '.Reservations[].Instances[].LaunchTime, .Reservations[].Instances[].InstanceLifecycle, .Reservations[].Instances[].InstanceType' \
+    | paste - - - -
+
+```
 
 ### 3. Clean-up
 

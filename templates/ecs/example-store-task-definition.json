@@ -1,0 +1,23 @@
+
+{
+	"requiresCompatibilities": [
+		"EC2"
+	],
+	"containerDefinitions": [{
+		"name": "todo-store",
+		"image": "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com.cn/fluent-bit:latest",
+		"memory": 128,
+		"essential": true,
+		"portMappings": [{
+			"protocol": "tcp",
+			"containerPort": 8080
+		}],
+		"logConfiguration": {
+			"logDriver": "awslogs",
+			"options": {
+				"awslogs-group": "example-todo-store"
+			}
+		}
+	}],
+	"family": "todo-store"
+}

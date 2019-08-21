@@ -73,7 +73,7 @@ curl "http://$ELB_DNS/hello"
 
 ```
 
-### 3. Clean-up
+### 4. Clean-up
 
 ```bash
 

@@ -1,5 +1,13 @@
 # Using third party solution for service mesh and monitoring
 
+Using Linkerd, Prometheus, and Grafana as major components for service mesh and monitoring solution, and Consul for service discovery. We're going to install multiple example applications through following steps and monitoring in real-time. Here's a high level architecture diagram.
+
+<img src="./images/service-mesh-diagram.png"/>
+
+[Linkerd](https://linkerd.io/1/overview/) is an open source network proxy designed to be deployed as a service mesh: a dedicated layer for managing, controlling, and monitoring service-to- service communication within an application. 
+
+[Prometheus](https://prometheus.io/docs/introduction/overview/) and [Grafana](https://grafana.com/grafana) are open-source systems monitoring and alerting toolkit. 
+
 ## Prerequisite
 
 - Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) with latest version.
@@ -12,7 +20,7 @@
 ```bash
 
 # setup variables
-cd ecs-mesh-workshop/bin;
+cd ecs-mesh-workshop/bin
 # modify environments in ./bashrc.ext
 source ./bashrc.ext
 
@@ -21,10 +29,20 @@ source ./bashrc.ext
 
 
 # build example applications
-?
+cd ecs-mesh-workshop/examples/todo/front
+docker build -t todo-front .
+cd ecs-mesh-workshop/examples/todo/store
+docker build -t todo-store .
 
 # push images to ECR
-?
+aws ecr create-repository --repository-name todo-front --image-tag-mutability MUTABLE
+aws ecr create-repository --repository-name todo-store --image-tag-mutability MUTABLE
+$(aws ecr get-login --no-include-email --region $AWS_REGION)
+docker tag todo-front:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com.cn/todo-front:latest
+docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com.cn/todo-front:latest
+
+docker tag todo-store:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com.cn/todo-store:latest
+docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com.cn/todo-store:latest
 
 ```
 
@@ -145,6 +163,9 @@ open http://localhost:3000
 ### 6. Clean-up
 
 ```bash
-# delete stacks in CloudFormation
+
+# delete all stacks in CloudFormation
+cd ecs-mesh-workshop/bin
+./clean_up.sh
 
 ```
