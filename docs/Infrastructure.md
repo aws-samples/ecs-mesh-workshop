@@ -7,6 +7,7 @@ We're going to build the infrastructure as following achitecture diagram through
 
 ## Prerequisite
 
+- Install [jq](https://stedolan.github.io/jq/) and [git](https://git-scm.com/downloads).
 - Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) with latest version.
 - [Configure](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) AWS CLI with right permission.
 
