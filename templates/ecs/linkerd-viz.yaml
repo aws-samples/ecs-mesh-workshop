@@ -35,7 +35,6 @@ Parameters:
   ip4Ec2:
     Description: DNS of the identity provider for EC2
     Type: String
-    Default: "ec2.amazonaws.com.cn" 
   nodesRole:
     Description: Role for nodes in ECS cluster.
     Type: String

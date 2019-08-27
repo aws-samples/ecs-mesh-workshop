@@ -33,6 +33,9 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
 
+Conditions:
+  OnZHY:  !Equals [ !Ref 'AWS::Region', cn-north-1 ]
+  OnBJS:  !Equals [ !Ref 'AWS::Region', cn-northwest-1 ]
 
 Mappings:
   RegionMap:
@@ -105,6 +108,8 @@ Resources:
   Policy4C:
     Type: AWS::CloudFormation::Stack
     Properties:
+      Parameters:
+        ip4Ec2: !If [OnZHY, !Ref ip4Ec2, !If [OnBJS, !Ref ip4Ec2, 'ec2.amazonaws.com']]
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-policy'
