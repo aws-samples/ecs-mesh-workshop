@@ -156,7 +156,7 @@ Resources:
         instanceType: !Ref instanceType
         ecsCluster: !GetAtt EcsCluster.Outputs.appEcsCluster
         s3Dns: !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
-        ip4Ec2: !If [OnZHY, !Ref ip4Ec2, !If [OnBJS, !Ref ip4Ec2, ‘ec2.amazonaws.com’]]
+        ip4Ec2: !If [OnZHY, !Ref ip4Ec2, !If [OnBJS, !Ref ip4Ec2, 'ec2.amazonaws.com']]
         nodesRole: 
           Fn::ImportValue:
              !Sub '${baseStackName}-nodesRole'
@@ -205,7 +205,7 @@ Resources:
         instanceType: !Ref instanceType
         ecsCluster: !GetAtt EcsCluster.Outputs.appEcsCluster
         s3Dns: !FindInMap [ RegionMap, !Ref 'AWS::Region', S3Endpoint ]
-        ip4Ec2: !If [OnZHY, !Ref ip4Ec2, !If [OnBJS, !Ref ip4Ec2, ‘ec2.amazonaws.com’]]
+        ip4Ec2: !If [OnZHY, !Ref ip4Ec2, !If [OnBJS, !Ref ip4Ec2, 'ec2.amazonaws.com']]
         nodesRole: 
           Fn::ImportValue:
              !Sub '${baseStackName}-nodesRole'

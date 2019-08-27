@@ -9,11 +9,6 @@ Parameters:
   ip4Ec2:
     Description: "DNS of the trusted identity provider for EC2."
     Type: String
-    Default: "ec2.amazonaws.com.cn" 
-  ip4Ecs:
-    Description: "DNS of the trusted identity provider for ECS."
-    Type: String
-    Default: "ecs.amazonaws.com" 
 
 
 Resources:
