@@ -1,0 +1,67 @@
+{
+	"requiresCompatibilities": [
+		"EC2"
+	],
+	"containerDefinitions": [
+    {
+      "name": "fluentd-daemon",
+      "image": "{aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com.cn/fluent-bit:latest",
+      "memoryReservation": 50,
+      "essential": true,
+      "environment": [
+        {
+            "name": "FLB_LOG_LEVEL",
+            "value": "INFO"
+        }
+      ],
+      "mountPoints": [
+        {
+            "sourceVolume": "socket",
+            "containerPath": "/var/run"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+            "awslogs-group": "daemon-fluentbit"
+        }
+      }
+	  },
+    {
+      "name": "aws-es-proxy",
+      "image": "abutaha/aws-es-proxy:0.9",
+      "memoryReservation": 50,
+      "essential": true,
+      "environment": [
+        {
+            "name": "AWS_ACCESS_KEY_ID",
+            "value": "{aws_access_key_id}"
+        },
+        {
+          "name": "AWS_SECRET_ACCESS_KEY",
+          "value": "{aws_secret_access_key}"
+        }
+      ],
+      "command": [
+        "-endpoint {es_endpoint}"
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+            "awslogs-group": "aws-es-proxy"
+        }
+      }
+	  }    
+  ],
+
+  "volumes": [
+    {
+      "name": "socket",
+      "host": {
+        "sourcePath": "/var/run"
+      }
+    }
+  ],
+  "networkMode": "host",
+	"family": "fluentd-aggregator"
+}
