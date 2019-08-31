@@ -1,0 +1,5 @@
+{
+    "serviceName": "fluentd-aggregator-daemon",
+    "taskDefinition": "fluentd-aggregator",
+    "schedulingStrategy": "DAEMON"
+}
