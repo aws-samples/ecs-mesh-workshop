@@ -16,11 +16,15 @@ It'll be Keep iterating and added more tutorials and guides from time to time.
 
 ### 4. [Using third party solution for service mesh and monitoring](./docs/ServiceMesh.md)
 
-### 5. Manage persistent volumn with different storages
+### 5. Manage persistent volumn with different storages: EBS/S3
 
 ### 6. [Centralized log solution with Fluent Bit & Elasticsearch](./docs/LogsCollection.md)
 
 ### 7. Integrate CI/CD with ECS cluster
+
+### 8. Services discovery on ECS cluster
+
+### 9. [Automated provisoning ECS cluster by CDK](https://github.com/cc4i/go-eks#ecs)
 
 ## Tips
 
@@ -33,8 +37,8 @@ It'll be Keep iterating and added more tutorials and guides from time to time.
 ## Todo
 
 - [ ] 5. Manage persistent volumn with different storages
-- [x] 6. Centralized log solution with Fluent Bit & Elasticsearch
 - [ ] 7. Integrate CI/CD with ECS cluster
+- [X] 8. Services discovery on ECS cluster
 
 ## Resources
 
