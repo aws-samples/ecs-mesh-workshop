@@ -5,3 +5,4 @@ bashrc.tmp
 **/*.tmp
 bashrc.ext
 bashrc.ext.old
+hot.code-workspace
