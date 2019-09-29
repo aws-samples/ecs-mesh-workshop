@@ -1,0 +1,63 @@
+
+{
+    "containerDefinitions": [
+        {
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "mysql-loggroup",
+                    "awslogs-region": "us-west-2",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "portMappings": [
+                {
+                    "containerPort": 3306,
+                    "protocol": "tcp"
+                }
+            ],
+            "environment": [
+                {
+                    "name": "MYSQL_ROOT_PASSWORD",
+                    "value": "my-secret-pw"
+                }
+            ],
+            "mountPoints": [
+                {
+                    "containerPath": "/var/lib/mysql",
+                    "sourceVolume": "rexray-vol"
+                }
+            ],
+            "image": "mysql",
+            "essential": true,
+            "name": "mysql"
+        }
+    ],
+    "placementConstraints": [
+        {
+            "type": "memberOf",
+            "expression": "attribute:ecs.availability-zone==us-west-2b"
+        }
+    ],
+    "memory": "512",
+    "family": "mysql-rexray",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": [
+        "EC2"
+    ],
+    "cpu": "512",
+    "volumes": [
+        {
+            "name": "rexray-vol",
+            "dockerVolumeConfiguration": {
+                "autoprovision": true,
+                "scope": "shared",
+                "driver": "rexray/ebs",
+                "driverOpts": {
+                    "volumetype": "gp2",
+                    "size": "5"
+                }
+            }
+        }
+    ]
+}
